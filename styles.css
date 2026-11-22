@@ -25,7 +25,7 @@
   --shadow: 0 1px 2px rgba(29, 36, 39, 0.06), 0 8px 28px rgba(29, 36, 39, 0.07);
 
   /* Type */
-  --font-ui: "Inter", "Segoe UI", system-ui, -apple-system, "Noto Sans Bengali", "Hind Siliguri", "Nirmala UI", Roboto, sans-serif;
+  --font-ui: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, "Noto Sans Bengali", "Hind Siliguri", "Nirmala UI", sans-serif;
   --font-display: "Iowan Old Style", "Charter", "Source Serif Pro", Georgia, "Noto Serif Bengali", "Noto Sans Bengali", "Nirmala UI", serif;
   --font-dyslexia: "Atkinson Hyperlegible", "Lexend", "Verdana", "Noto Sans Bengali", "Nirmala UI", sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
