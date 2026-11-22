@@ -161,7 +161,7 @@ p { margin: 0 0 var(--s4); max-width: var(--measure); }
 
 .view { animation: rise var(--dur-slow) var(--ease) both; }
 .view:focus { outline: none; }
-@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { transform: translateY(6px); } to { transform: none; } }
 .is-reduced-motion .view { animation: none; }
 
 /* ---------- 4. Surfaces ---------- */
