@@ -9,8 +9,12 @@ Built for the [Taskforge](https://taskforge.devpost.com/) student hackathon.
 Rafi is a student with ADHD. A long to-do list freezes him, and when something interrupts his work (a call, a meeting) he can't find his way back. The tools he tries show everything at once and forget where he stopped.
 
 ## What Anchor Relay does
-- **Anchor — one step only.** Paste a messy list, and the app shows a single small step with a soft progress ring. *Done*, *Not now*, or *I'm stuck* (splits the step into two smaller ones). No red badges, no confetti.
+- **Anchor — one step only.** Paste a messy list, and the app shows a single small step with a soft progress ring. *Done*, *Not now*, or *I'm stuck* (splits the step into two smaller ones). No red badges, no alarms.
 - **Relay — pick up where you left off.** Tap *I'm interrupted*, write or say where you stopped. When you return you get a *Welcome back* card: what's done, what's left, and **one** next tiny step. One click makes a handoff note a teammate can read.
+- **Gentle timer.** Optional 5/10/25-minute sprint with a soft chime. No countdown panic: it never turns red.
+- **Quiet momentum.** A small "2 today · 3-day streak" chip. A breathing beacon on the *Saved* screen while you're away.
+- **Yours to keep.** Download/restore a JSON backup, download the handoff as `.txt`, and install it as an offline app (PWA).
+- **Cinematic "Night Watch" design.** Midnight blue, a single amber beacon, film grain, slow drifting light. Calm light and high-contrast themes are one tap away in Settings.
 
 ## Accessibility
 Keyboard-only use (Enter / S / N / R / I / ?), screen-reader announcements, read aloud, voice input, English + বাংলা, three themes (calm, dark, high contrast), large text, dyslexia-friendly font, extra spacing, reduced motion.

@@ -1,16 +1,22 @@
 <!DOCTYPE html>
-<html lang="en" class="theme-calm">
+<html lang="en" class="theme-dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Anchor Relay — come back to your work</title>
   <meta name="description" content="A calm, accessible focus tool: one step at a time, and an easy way back after interruptions. Works offline, English and Bangla.">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#f3efe7">
+  <meta name="theme-color" content="#060a13">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&display=swap">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2323524d'/%3E%3Ccircle cx='16' cy='9' r='3' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M16 12v13M9 19a7 7 0 0 0 14 0' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="motes" aria-hidden="true"></div>
   <!-- Icon sprite: stroke icons, inherit currentColor. No emoji anywhere. -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <symbol id="i-anchor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M12 7.5V21M5 13a7 7 0 0 0 14 0M8.5 11h7"/></symbol>
@@ -48,6 +54,7 @@
         <button type="button" data-view="settings" data-i18n="nav.settings">Settings</button>
       </nav>
 
+      <span class="chip" id="momentum" hidden></span>
       <button type="button" class="btn btn-sm btn-quiet" id="lang-toggle" data-i18n-attr="aria-label:lang.toggle.label">
         <span data-i18n="lang.toggle">বাংলা</span>
       </button>
@@ -60,8 +67,19 @@
 
       <!-- ============ CAPTURE: brain dump -> tasks ============ -->
       <section class="view" id="view-capture" data-view-panel="capture" aria-labelledby="capture-title" hidden>
+        <div class="hero" id="hero">
+          <p class="eyebrow" data-i18n="hero.eyebrow">Interrupted? You did not lose it.</p>
+          <h1 data-i18n-html="hero.title">Come back to <em>exactly</em> where you were.</h1>
+          <p data-i18n="hero.lead">One step at a time. A calm way back after every interruption.</p>
+          <ul class="flow">
+            <li><b>1</b><span data-i18n="hero.f1">Capture the mess</span></li>
+            <li><b>2</b><span data-i18n="hero.f2">Anchor on one step</span></li>
+            <li><b>3</b><span data-i18n="hero.f3">Relay back after a break</span></li>
+          </ul>
+        </div>
+
         <div class="card stack">
-          <h1 id="capture-title" data-i18n="capture.title">Empty your head</h1>
+          <h2 id="capture-title" data-i18n="capture.title">Empty your head</h2>
           <p class="muted" data-i18n="capture.lead"></p>
           <label class="field">
             <span class="field-label" data-i18n="capture.label">Brain dump</span>
@@ -90,6 +108,7 @@
         <article class="card focus-card" id="focus-card" aria-describedby="focus-progress-text">
           <div class="ring" id="focus-ring" aria-hidden="true">
             <svg viewBox="0 0 120 120">
+              <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe3a8"/><stop offset="1" stop-color="#ff9a3c"/></linearGradient></defs>
               <circle class="ring-track" cx="60" cy="60" r="52" fill="none" stroke-width="8"/>
               <!-- circumference = 2πr = 326.73; app sets stroke-dashoffset = C * (1 - ratio) -->
               <circle class="ring-fill" id="focus-ring-fill" cx="60" cy="60" r="52" fill="none" stroke-width="8"
@@ -117,6 +136,20 @@
               <button type="button" class="btn btn-quiet" id="btn-read" aria-keyshortcuts="R">
                 <svg class="icon" aria-hidden="true"><use href="#i-speak"/></svg><span data-i18n="focus.read">Read aloud</span>
               </button>
+            </div>
+
+            <div class="sprint" id="sprint">
+              <span class="sprint-label" data-i18n="sprint.label">Gentle timer</span>
+              <span class="sprint-pick">
+                <button type="button" class="chip-btn" data-sprint="5">5</button>
+                <button type="button" class="chip-btn" data-sprint="10">10</button>
+                <button type="button" class="chip-btn" data-sprint="25">25</button>
+              </span>
+              <span class="sprint-run">
+                <span class="sprint-time" id="sprint-time" role="timer" aria-live="off">00:00</span>
+                <span class="sprint-bar" aria-hidden="true"><i id="sprint-bar"></i></span>
+                <button type="button" class="chip-btn" id="sprint-stop" data-i18n="sprint.stop">Stop</button>
+              </span>
             </div>
           </div>
         </article>
@@ -151,6 +184,8 @@
       <!-- ============ SAVED: confirmation while away ============ -->
       <section class="view" id="view-saved" data-view-panel="saved" aria-labelledby="saved-title" hidden>
         <div class="card stack">
+          <div class="orb" aria-hidden="true"></div>
+          <p class="orb-cue" id="orb-cue" aria-hidden="true"></p>
           <h1 id="saved-title" data-i18n="interrupt.saved.title">Saved. Go.</h1>
           <p class="muted" data-i18n="interrupt.saved.body"></p>
           <button type="button" class="btn btn-primary btn-lg" id="back-btn">
@@ -217,6 +252,7 @@
             <button type="button" class="btn btn-primary" id="handoff-copy">
               <svg class="icon" aria-hidden="true"><use href="#i-copy"/></svg><span data-i18n="handoff.copy">Copy</span>
             </button>
+            <button type="button" class="btn" id="handoff-download" data-i18n="handoff.download">Download .txt</button>
             <button type="button" class="btn btn-quiet" id="handoff-read">
               <svg class="icon" aria-hidden="true"><use href="#i-speak"/></svg><span data-i18n="focus.read">Read aloud</span>
             </button>
@@ -268,7 +304,11 @@
 
         <div class="card stack">
           <h2 data-i18n="settings.data">Your data</h2>
-          <button type="button" class="btn" id="reset-all" data-i18n="settings.reset">Clear everything</button>
+          <div class="row-gap">
+            <button type="button" class="btn" id="export-data" data-i18n="settings.export">Download backup</button>
+            <label class="btn file-btn"><span data-i18n="settings.import">Restore backup</span><input type="file" id="import-data" accept="application/json,.json" aria-label="Restore backup"></label>
+            <button type="button" class="btn" id="reset-all" data-i18n="settings.reset">Clear everything</button>
+          </div>
         </div>
       </section>
     </main>

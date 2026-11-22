@@ -12,6 +12,25 @@
   const STRINGS = {
     en: {
       'app.name': 'Anchor Relay',
+      'hero.eyebrow': 'Interrupted? You did not lose it.',
+      'hero.title': 'Come back to <em>exactly</em> where you were.',
+      'hero.lead': 'One step at a time. A calm way back after every interruption.',
+      'hero.f1': 'Capture the mess',
+      'hero.f2': 'Anchor on one step',
+      'hero.f3': 'Relay back after a break',
+      'sprint.label': 'Gentle timer (min)',
+      'sprint.stop': 'Stop',
+      'sprint.done': 'Time. Breathe. Mark it done, or take another round.',
+      'momentum.today': '{n} today',
+      'momentum.streak': '{d}-day streak',
+      'orb.in': 'Breathe in',
+      'orb.out': 'Breathe out',
+      'settings.export': 'Download backup',
+      'settings.import': 'Restore backup',
+      'settings.import.ok': 'Backup restored.',
+      'settings.import.bad': 'That file is not an Anchor Relay backup.',
+      'handoff.download': 'Download .txt',
+      'settings.theme.dark': 'Cinema (dark)',
       'app.tagline': 'One thing at a time. Easy to come back to.',
       'skip': 'Skip to main content',
       'lang.toggle': 'বাংলা',
@@ -93,7 +112,6 @@
       'settings.display': 'Comfort and display',
       'settings.theme': 'Theme',
       'settings.theme.calm': 'Calm light',
-      'settings.theme.dark': 'Calm dark',
       'settings.theme.contrast': 'High contrast',
       'settings.largeText': 'Larger text',
       'settings.dyslexia': 'Dyslexia-friendly font',
@@ -134,6 +152,25 @@
 
     bn: {
       'app.name': 'অ্যাঙ্কর রিলে',
+      'hero.eyebrow': 'বাধা পেলেন? কিছুই হারাননি।',
+      'hero.title': 'ঠিক যেখানে ছিলেন, <em>সেখানেই</em> ফিরুন।',
+      'hero.lead': 'একবারে একটি ধাপ। প্রতিটি বাধার পর শান্তভাবে ফেরার পথ।',
+      'hero.f1': 'এলোমেলো ভাবনা লিখুন',
+      'hero.f2': 'একটি ধাপে মন দিন',
+      'hero.f3': 'বিরতির পর ফিরে আসুন',
+      'sprint.label': 'শান্ত টাইমার (মিনিট)',
+      'sprint.stop': 'থামান',
+      'sprint.done': 'সময় শেষ। একটু শ্বাস নিন। কাজটি শেষ করুন, অথবা আরেকটি রাউন্ড নিন।',
+      'momentum.today': 'আজ {n}টি',
+      'momentum.streak': '{d} দিনের ধারা',
+      'orb.in': 'শ্বাস নিন',
+      'orb.out': 'শ্বাস ছাড়ুন',
+      'settings.export': 'ব্যাকআপ নামান',
+      'settings.import': 'ব্যাকআপ ফিরিয়ে আনুন',
+      'settings.import.ok': 'ব্যাকআপ ফিরিয়ে আনা হয়েছে।',
+      'settings.import.bad': 'এটি Anchor Relay-এর ব্যাকআপ ফাইল নয়।',
+      'handoff.download': '.txt নামান',
+      'settings.theme.dark': 'সিনেমা (গাঢ়)',
       'app.tagline': 'একবারে একটি কাজ। ফিরে আসা সহজ।',
       'skip': 'মূল অংশে যান',
       'lang.toggle': 'English',
@@ -209,7 +246,6 @@
       'settings.display': 'আরাম ও প্রদর্শন',
       'settings.theme': 'থিম',
       'settings.theme.calm': 'শান্ত আলো',
-      'settings.theme.dark': 'শান্ত অন্ধকার',
       'settings.theme.contrast': 'উচ্চ কনট্রাস্ট',
       'settings.largeText': 'বড় লেখা',
       'settings.dyslexia': 'ডিসলেক্সিয়া-বান্ধব ফন্ট',
@@ -273,6 +309,7 @@
   function apply(rootEl) {
     const r = rootEl || document;
     r.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
+    r.querySelectorAll('[data-i18n-html]').forEach((el) => (el.innerHTML = t(el.dataset.i18nHtml))); // our own strings only
     r.querySelectorAll('[data-i18n-attr]').forEach((el) => {
       el.dataset.i18nAttr.split(';').forEach((pair) => {
         const [attr, key] = pair.split(':').map((x) => x.trim());

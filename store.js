@@ -42,11 +42,12 @@
     version: 1,
     lang: 'en',
     view: 'capture',
-    settings: { theme: 'calm', largeText: false, dyslexia: false, spacing: false, reduceMotion: null, rate: 0.95, apiKey: '', model: 'gemini-2.5-flash' },
+    settings: { theme: 'dark', designV: 2, largeText: false, dyslexia: false, spacing: false, reduceMotion: null, rate: 0.95, apiKey: '', model: 'gemini-2.5-flash' },
     tasks: [],
     currentTaskId: null,
     interruption: null,
     history: [],
+    stats: { days: {} },
   });
 
   let memory = null; // in-memory fallback

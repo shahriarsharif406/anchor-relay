@@ -66,6 +66,9 @@
     $$('.nav [data-view]').forEach((b) => (b.dataset.view === view ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')));
     $('#interrupt-fab').hidden = view === 'interrupt' || view === 'saved';
     if (RENDER[view]) RENDER[view]();
+    Momentum.render();
+    if (view === 'saved') Orb.start(); else Orb.stop();
+    const hero = $('#hero'); if (hero) hero.hidden = state.tasks.length > 0;
     if (!opts || opts.focus !== false) {
       const panel = $(`[data-view-panel="${view}"]`);
       const target = $('[tabindex="-1"].step-text:not(:empty)', panel) || $('h1', panel);
@@ -81,7 +84,7 @@
     const s = state.settings;
     const html = document.documentElement;
     ['theme-calm', 'theme-dark', 'theme-contrast'].forEach((c) => html.classList.remove(c));
-    html.classList.add('theme-' + (s.theme || 'calm'));
+    html.classList.add('theme-' + (s.theme || 'dark'));
     html.classList.toggle('is-large-text', !!s.largeText);
     html.classList.toggle('is-dyslexia', !!s.dyslexia);
     html.classList.toggle('is-spacing', !!s.spacing);
@@ -89,7 +92,7 @@
     html.classList.toggle('is-reduced-motion', s.reduceMotion === true);
     html.classList.toggle('motion-ok', s.reduceMotion === false);
     const meta = $('meta[name="theme-color"]');
-    if (meta) meta.content = getComputedStyle(html).getPropertyValue('--bg').trim() || '#f3efe7';
+    if (meta) meta.content = getComputedStyle(html).getPropertyValue('--bg').trim() || '#060a13';
   }
 
   /** Apply the current language to <html lang>, static strings, and the visible view. */
@@ -235,12 +238,16 @@
       if (!step) return;
       Speech.stop();
       step.status = 'done';
+      Momentum.bump();
+      Sprint.stop(true);
       if (!hasTodo(task)) {
         ensureCurrent();
         announce(t('focus.taskdone'));
       }
       commit();
       go('focus');
+      const ring = $('#focus-ring');
+      if (ring) { ring.classList.remove('is-lit'); void ring.offsetWidth; ring.classList.add('is-lit'); }
     },
 
     notNow() {
@@ -722,6 +729,12 @@
     $('#handoff-copy').addEventListener('click', () => Handoff.copy());
     $('#handoff-read').addEventListener('click', () => Speech.speak($('#handoff-text').value));
 
+    $$('[data-sprint]').forEach((b) => b.addEventListener('click', () => Sprint.start(Number(b.dataset.sprint))));
+    $('#sprint-stop').addEventListener('click', () => Sprint.stop());
+    $('#export-data').addEventListener('click', () => Data.export());
+    $('#import-data').addEventListener('change', (e) => { if (e.target.files[0]) Data.import(e.target.files[0]); e.target.value = ''; });
+    $('#handoff-download').addEventListener('click', () => Data.download(new Blob([$('#handoff-text').value], { type: 'text/plain;charset=utf-8' }), 'handoff-' + dayKey() + '.txt'));
+
     Settings.bind();
 
     // Global shortcuts. Paused while typing (except Esc). Ignore with modifier keys.
@@ -756,8 +769,142 @@
     });
   }
 
+
+  /* ======================================================================
+     Extras: momentum, gentle timer, breathing cue, backup, offline install
+     ====================================================================== */
+  const dayKey = (d) => {
+    const x = d || new Date();
+    return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+  };
+
+  const Momentum = {
+    bump() {
+      state.stats = state.stats || { days: {} };
+      const k = dayKey();
+      state.stats.days[k] = (state.stats.days[k] || 0) + 1;
+      // keep ~60 days only
+      const keys = Object.keys(state.stats.days).sort();
+      while (keys.length > 60) delete state.stats.days[keys.shift()];
+    },
+    streak() {
+      const days = (state.stats && state.stats.days) || {};
+      let n = 0;
+      const d = new Date();
+      if (!days[dayKey(d)]) d.setDate(d.getDate() - 1); // today may not have started yet
+      while (days[dayKey(d)]) { n++; d.setDate(d.getDate() - 1); }
+      return n;
+    },
+    render() {
+      const el = $('#momentum');
+      const today = ((state.stats && state.stats.days) || {})[dayKey()] || 0;
+      if (!today) { el.hidden = true; return; }
+      const st = Momentum.streak();
+      el.textContent = t('momentum.today', { n: today }) + (st > 1 ? ' · ' + t('momentum.streak', { d: st }) : '');
+      el.hidden = false;
+    },
+  };
+
+  const Sprint = {
+    timer: null, end: 0, total: 0,
+    chime() {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        const ctx = new Ctx();
+        [523.25, 659.25, 783.99].forEach((f, i) => {
+          const o = ctx.createOscillator(); const g = ctx.createGain();
+          o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(ctx.destination);
+          const t0 = ctx.currentTime + i * 0.22;
+          g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.12, t0 + 0.03); g.gain.exponentialRampToValueAtTime(0.001, t0 + 1.2);
+          o.start(t0); o.stop(t0 + 1.3);
+        });
+      } catch (e) {}
+    },
+    start(min) {
+      Sprint.stop(true);
+      Sprint.total = min * 60000; Sprint.end = Date.now() + Sprint.total;
+      $('#sprint').classList.add('is-running');
+      Sprint.tick();
+      Sprint.timer = setInterval(Sprint.tick, 1000);
+    },
+    tick() {
+      const left = Math.max(0, Sprint.end - Date.now());
+      const s = Math.ceil(left / 1000);
+      $('#sprint-time').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+      $('#sprint-bar').style.width = (100 * (1 - left / Sprint.total)) + '%';
+      if (left <= 0) { Sprint.stop(true); Sprint.chime(); announce(t('sprint.done')); }
+    },
+    stop(silent) {
+      clearInterval(Sprint.timer); Sprint.timer = null;
+      const el = $('#sprint'); if (el) el.classList.remove('is-running');
+    },
+  };
+
+  const Orb = {
+    t: null,
+    start() {
+      const cue = $('#orb-cue'); let inhale = true;
+      clearInterval(Orb.t);
+      const set = () => { cue.textContent = t(inhale ? 'orb.in' : 'orb.out'); inhale = !inhale; };
+      set(); Orb.t = setInterval(set, 4000);
+    },
+    stop() { clearInterval(Orb.t); },
+  };
+
+  const Data = {
+    export() {
+      const copy = JSON.parse(JSON.stringify(state));
+      copy.settings.apiKey = ''; // never put the key in a file
+      const blob = new Blob([JSON.stringify({ app: 'anchor-relay', exportedAt: new Date().toISOString(), state: copy }, null, 2)], { type: 'application/json' });
+      Data.download(blob, 'anchor-relay-backup-' + dayKey() + '.json');
+    },
+    download(blob, name) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    },
+    async import(file) {
+      try {
+        const obj = JSON.parse(await file.text());
+        if (!obj || obj.app !== 'anchor-relay' || !obj.state || !Array.isArray(obj.state.tasks)) throw new Error('bad');
+        const key = state.settings.apiKey;
+        const d = Store.defaults();
+        state = Object.assign(d, obj.state, { settings: Object.assign(d.settings, obj.state.settings || {}, { apiKey: key }) });
+        commit(); applySettings(); applyLang(); go(state.tasks.length ? 'focus' : 'capture');
+        announce(t('settings.import.ok'));
+      } catch (e) {
+        announce(t('settings.import.bad'));
+      }
+    },
+  };
+
+  function decorate() {
+    // drifting lights
+    const m = $('.motes');
+    if (m && !m.children.length) {
+      for (let i = 0; i < 18; i++) {
+        const p = document.createElement('i');
+        p.style.left = Math.round(Math.random() * 100) + '%';
+        p.style.animationDuration = (14 + Math.random() * 18).toFixed(1) + 's';
+        p.style.animationDelay = (-Math.random() * 30).toFixed(1) + 's';
+        p.style.transform = 'scale(' + (0.6 + Math.random() * 1.2).toFixed(2) + ')';
+        m.appendChild(p);
+      }
+    }
+    // offline install
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  }
+
   function boot() {
+    // Design v2 (Night Watch): move everyone to the Cinema theme once; they can switch back in Settings.
+    if (state.settings.designV !== 2) { state.settings.designV = 2; state.settings.theme = 'dark'; commit(); }
     applySettings();
+    decorate();
+    Momentum.render();
     I18N.setLang(state.lang);
     I18N.apply(document);
     document.title = t('app.name') + ' — ' + t('app.tagline');
